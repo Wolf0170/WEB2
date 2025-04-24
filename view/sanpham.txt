@@ -1,0 +1,203 @@
+<?php
+// Kết nối database
+include "../model/thuvien.php";
+$conn = ketnoidb();
+
+// Số sản phẩm hiển thị trên mỗi trang
+$limit = 6;
+
+// Lấy số sản phẩm trong database
+$sql_count = "SELECT COUNT(*) AS TongSanPham FROM sanpham";
+$result_count = mysqli_query($conn, $sql_count);
+$row = mysqli_fetch_assoc($result_count);
+$total_products = $row['TongSanPham']; // Tổng số sản phẩm
+
+// Tính tổng số trang
+$total_pages = ceil($total_products / $limit);
+
+// Lấy trang hiện tại từ URL, nếu không có thì mặc định là 1
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+
+// Gọi hàm loadallproduct() để hiển thị sản phẩm theo trang hiện tại
+echo upLoadSanPham($page, $limit);
+
+// Hiển thị nút phân trang
+echo '<div class="pagination">';
+for ($i = 1; $i <= $total_pages; $i++) {
+    echo '<a href="../controller/index.php?page='.$i.'" class="'.($page == $i ? 'active' : '').'">Trang '.$i.'</a> ';
+}
+echo '</div>';
+
+// Đóng kết nối database
+mysqli_close($conn);
+?>
+
+function upLoadSanPham($page = 1, $limit = 6){
+   // Kết nối database
+   $conn = ketnoidb();
+
+   // Tính OFFSET để lấy sản phẩm đúng vị trí trang hiện tại
+   $offset = ($page - 1) * $limit;
+
+   // Truy vấn dữ liệu với phân trang
+   $sql = "SELECT * FROM sanpham ORDER BY MaSP DESC LIMIT $limit OFFSET $offset";
+   $result = mysqli_query($conn, $sql);
+
+   $kq = "";
+   while ($pro = mysqli_fetch_assoc($result)) {
+       $kq .= '<div class="boxsp mr">
+               <div class="row img"><img src="../view/images/'.$pro['HinhAnh'].'" alt="'.$pro['TenSP'].'"></div>
+               <p>$<span>'.$pro['DonGia'].'</span></p>
+               <a href="#">'.$pro['TenSP'].'</a>
+               <form action="index.php?act=cart" method="post">
+                   <input type="submit" name="addcart" value="Đặt hàng">
+                   <input type="hidden" name="tensp" value="'.$pro['TenSP'].'">
+                   <input type="hidden" name="gia" value="'.$pro['DonGia'].'">
+                   <input type="hidden" name="hinh" value="'.$pro['HinhAnh'].'">
+               </form>
+           </div>';
+   }
+
+   mysqli_close($conn);
+   return $kq;
+}
+?>
+
+'<div class="products-item">
+            <div class="product-top">
+              <a href="#product8" class="product-thumb">
+                <img src="../view/img/product'.$pro['HinhAnh'].'" alt="'.$pro['TenSP'].'">
+              </a>
+              <div class="product-info">
+                <a href="#" class="product-name">'.$pro['TenSP'].'</a>
+                <div class="product-price">
+                  <span class="price">'.$pro['DonGia'].'</span>
+                </div>
+                 <form action="index.php?act=cart" method="post">
+                   <input type="submit" name="addcart" value="Đặt hàng">
+                   <input type="hidden" name="tensp" value="'.$pro['TenSP'].'">
+                   <input type="hidden" name="gia" value="'.$pro['DonGia'].'">
+                   <input type="hidden" name="hinh" value="'.$pro['HinhAnh'].'">
+               </form>
+              </div>
+            </div>
+          </div>';
+
+
+header
+
+<?php
+session_start();
+// KT USER ĐĂNG NHẬP CHƯA
+$isLoggedIn = isset($_SESSION['tenDangNhap']);
+
+if($isLoggedIn){
+  $tenNguoiDung = $_SESSION['tenNguoiDung'];
+  $tenDangNhap = $_SESSION['tenDangNhap']; 
+  $email = $_SESSION['email']; 
+  $password = $_SESSION['password'];
+  $sdt = $_SESSION['sdt'];
+  $diaChi = $_SESSION['diaChi'];
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link
+      rel="shortcut icon"
+      href="../view/img/DMTD-Food-Logo.jpg"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="../view/css/style.css" />
+    <title>DMTD FOOD</title>
+</head>
+<body>
+<div class="header-banner">60 phút - Giao ngay tận nơi</div>
+    <!-- header  -->
+    <header class="header-top">
+      <div class="container">
+        <div class="logo">
+          <a href="#" class="logo-img"
+            ><img height="70" src="../view/img/DMTD-Food-Logo.jpg" alt="Logo"
+          /></a>
+          <span><b>DMTD FOOD</b></span>
+        </div>
+        <div class="box">
+          <input type="text" placeholder="Tìm kiếm thức ăn" />
+          <a href="filter.html">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </a>
+        </div>
+        <div class="action">
+          <div class="item">
+            <a href="#"><i class="fa-regular fa-user"></i></a>
+            <?php if($isLoggedIn == true) 
+              echo $tenDangNhap;
+            ?>
+            <ul class="item_menu">
+              <?php
+              if($isLoggedIn == true){
+              ?>
+              <li class="heder_item_user">
+                <a href="../view/cart.php">Giỏ hàng của tôi</a>
+              </li>
+              <li class="heder_item_user">
+                <a href="../view/logOut.php">Đăng xuất</a>
+              </li>
+              <?php
+            } else{
+              ?>
+              <li class="heder_item_user">
+                <a href="../view/signIn.php">Đăng nhập</a>
+            </li>
+              <li class="heder_item_user">
+                <a href="../view/signUp.php">Đăng ký</a>
+              </li>
+              <?php
+            }
+            ?> 
+            </ul>
+          </div>
+          <div class="item">
+            <a href="register.html"
+              ><i class="fa-solid fa-cart-shopping"></i
+            ></a>
+          </div>
+        </div>
+      </div>
+    </header>
+    <!-- header  -->
+    <nav>
+      <ul>
+        <li><a href="#">Trang chủ</a></li>
+        <li><a href="#">Món mặn</a></li>
+        <li><a href="#">Món chay</a></li>
+        <li><a href="#">Món lẩu</a></li>
+        <li><a href="#">Nước uống</a></li>
+      </ul>
+    </nav>
+
+    <div class="banner">
+      <img
+        src="../view/img/White Texture Modern Korean Food Banner.png"
+        alt="banner"
+      />
+    </div>
+</body>
+</html>
+
+<!-- Hiển thị phân trang -->
+<div class="pagination">
+    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+        <a href="../controller/index.php?page=<?= $i ?>" class="<?= ($page == $i ? 'active' : '') ?>">
+            Trang <?= $i ?>
+        </a>
+    <?php endfor; ?>
+</div>
